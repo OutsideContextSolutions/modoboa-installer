@@ -1,0 +1,44 @@
+branch: master #Git version
+virtualenv_command: virtualenv
+appname: Settings
+requirements: "requirements.txt"
+
+templates: []
+
+###Postgres DB
+dbName: "{{ domain | replace('.','_') }}"
+dbUser: "{{ domain | replace('.','_') }}"
+
+###uwsgi
+
+#procname-master
+chdir: /home/{{user}}/{{domain}}/
+
+processes: 4 # Max 4 processes
+threads: 4 # Each running 4 threads
+cheaper: 1 # Reduce to 1 process when quiet
+thread_stack_size: 512 # Save some memory per thread
+plugin: python
+pythonpath: "{{chdir}}"
+procname_master: "{{domain}}"
+
+#virtualenv 
+#; Add this dir to PYTHONPATH so Python can find out code
+#pythonpath
+
+#; The WSGI module to load
+module: "{{appname}}.wsgi"
+# Don't load the app in the Master - saves memory in quiet times
+lazy_apps: "true"
+
+###
+djanngo_management_command: manage.py
+
+modoboa_base_apps:
+    - 'modoboa'
+    - 'modoboa.core'
+    - 'modoboa.lib'
+    - 'modoboa.admin'
+    - 'modoboa.relaydomains'
+    - 'modoboa.limits'
+    - 'modoboa.parameters'

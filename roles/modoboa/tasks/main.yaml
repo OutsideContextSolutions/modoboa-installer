@@ -1,0 +1,110 @@
+- include: amavis.yaml
+  when: amavis
+- include: postfix.yaml
+  when: postfix
+- include: dovecot.yaml
+  when: dovecot
+- include: clamav.yaml
+  when: clamav
+
+- name: Create the {{user}} user.
+  become: True
+  user:
+    name: "{{user}}"
+    generate_ssh_key: True
+    shell: /bin/bash
+    system: True
+
+- name: Cat public key for {{user}}
+  become: True
+  become_user: "{{user}}"
+  command: "/bin/cat ~/.ssh/id_rsa.pub"
+  register: pubkeys
+
+- name: Print pubkeys for {{user}}
+  debug: 
+    msg: "{{ pubkeys.stdout | quote }}"
+
+- name: Generate a random password for the modoboa database user
+  shell: < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo -n;
+  register: dbPasswordCommand
+
+- name: create {{dbName}} postgres database
+  become: True
+  become_user: "postgres"
+  postgresql_db:
+    name: "{{dbName}}"
+
+- name: give access to {{dbUser}} on {{dbName}}
+  become: True
+  become_user: "postgres"
+  postgresql_user:
+    db: "{{dbName}}"
+    name: "{{dbUser}}"
+    password: "{{dbPasswordCommand.stdout}}"
+    encrypted: True
+    priv: ALL
+
+- name: Initialize empty configuration
+  copy:
+    src: modoboa-config-base/
+    dest: /home/{{user}}/{{domain}}/
+    owner: "{{user}}"
+    group: "{{user}}"
+    mode: 0644
+
+- name: Generate default config file
+  template:
+    src: settings.jinja2.py
+    dest: /home/{{user}}/{{domain}}/Settings/settings.py 
+    mode: 0644
+
+- name: Create requirements.txt
+  template:
+    src: requirements.jinja2.txt
+    dest: /home/{{user}}/{{domain}}/requirements.txt
+    mode: 0644
+
+- name: Create a virtualenv at ~/{{domain}}-venv/ and install repository requirements.txt
+  become: True
+  become_user: "{{user}}"
+  pip:
+    state: latest
+    editable: "{{develop|default('False')}}"
+    extra_args: --no-cache-dir
+    requirements: /home/{{user}}/{{domain}}/requirements.txt
+    virtualenv: ~/{{domain}}-venv/
+    virtualenv_command: "{{virtualenv_command}}"
+
+- name: Create a uwsgi config for {{domain}}
+  template:
+    src: uwsgi.jinja2.ini
+    dest: "/etc/uwsgi/apps-available/{{domain}}.ini"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Enable config at /etc/uwsgi/apps-available/{{domain}}.ini
+  file:
+    src: /etc/uwsgi/apps-available/{{domain}}.ini
+    dest: /etc/uwsgi/apps-enabled/{{domain}}.ini
+    owner: root
+    group: root
+    state: link
+
+- name: Create an nginx config for {{domain}}
+  template:
+    src: nginx.jinja2.conf
+    dest: "/etc/nginx/sites-available/{{domain}}.conf"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Enable config at /etc/nginx/sites-available/{{domain}}.conf
+  file:
+    src: /etc/nginx/sites-available/{{domain}}.conf
+    dest: /etc/nginx/sites-enabled/{{domain}}.conf
+    owner: root
+    group: root
+    state: link
+

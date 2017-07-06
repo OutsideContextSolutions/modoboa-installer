@@ -1,0 +1,6 @@
+[submodule "roles-thirdpary/outsideContextSolutions"]
+	path = roles-thirdpary/outsideContextSolutions
+	url = https://github.com/OutsideContextSolutions/AnsibleRoles.git
+[submodule "roles/letsenrypt"]
+	path = roles/letsenrypt
+	url = https://github.com/OutsideContextSolutions/ansible-letsencrypt.git

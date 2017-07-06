@@ -1,0 +1,3 @@
+- name: Generate a random password for our database user
+  shell: < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo -n;
+  register: amavis_dbPasswordCommand

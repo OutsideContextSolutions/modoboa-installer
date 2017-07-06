@@ -1,0 +1,2 @@
+- name: Run django migrate
+  shell: /home/{{user}}/{{domain}}-venv/bin/python /home/{{user}}/{{domain}}/{{djanngo_management_command}} migrate

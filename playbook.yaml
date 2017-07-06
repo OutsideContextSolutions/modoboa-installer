@@ -1,0 +1,52 @@
+---
+- hosts: all
+  vars:
+    baseDomain: example.com
+    domain: mailtesting.{{baseDomain}} #Where your webmail and administration interface lives.
+    timezone: America/Halifax
+    modoboa_apps:
+      - 'modoboa-amavis'
+      - 'modoboa-pdfcredentials'
+      - 'modoboa-postfix_autoreply'
+      - 'modoboa-sievefilters'
+      - 'modoboa-stats'
+      - 'modoboa-webmail'
+    postfix: True
+    dovecot: True
+    clamav: True
+    spamassassin: True
+    amavis: 
+      enabled: True
+      user: amavis
+      max_servers: 1
+      dbName: amavis
+      dbUser: amavis
+
+#    customized: False #Set this to true or you will get an error
+    customized: True
+    #These variables *probably* don't need to get edited.
+    ssl_certificate: /etc/ssl/private/fullchain.pem
+    ssl_certificate_key: /etc/ssl/private/privkey.pem
+
+  pre_tasks:
+    - fail: 
+        msg: The default configuration will not work. Please edit the configuration and set `cutomized` to True in playbook.yaml.
+      when: not customized
+  roles:
+   - base
+
+#   - role: selfSingedCert
+#   - role: letsencrypt
+#     letsencrypt_email: root@{{baseDomain}}
+#     letsencrypt_cert_domains:
+#       - "{{baseDomain}}"
+#       - "{{domain}}"
+       # Add extra domains here.
+#     letsencrypt_renewal_command_args: '--renew-hook "systemctl restart nginx"'
+#     letsencrypt_webroot_path: /var/www/html
+
+   - role: modoboa
+     user: modoboa
+     plugin: python27
+     virtualenv_command: virtualenv -p /usr/bin/python2.7
+     module: wsgi:application
