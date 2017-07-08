@@ -23,7 +23,7 @@
       dbUser: amavis
 
 #    customized: False #Set this to true or you will get an error
-    customized: True
+#    customized: True
     #These variables *probably* don't need to get edited.
     ssl_certificate: /etc/ssl/private/fullchain.pem
     ssl_certificate_key: /etc/ssl/private/privkey.pem

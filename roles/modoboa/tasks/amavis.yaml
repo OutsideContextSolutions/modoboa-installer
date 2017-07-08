@@ -1,3 +1,53 @@
+- name: Install amavis
+  apt:
+    state: present
+    name: amavis-new
+
 - name: Generate a random password for our database user
   shell: < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo -n;
   register: amavis_dbPasswordCommand
+
+- name: create {{amavis.dbName}} postgres database
+  become: True
+  become_user: "postgres"
+  postgresql_db:
+    name: "{{amavis.dbName}}"
+
+- name: give access to {{amavis.dbUser}} on {{amavis.dbName}}
+  become: True
+  become_user: "postgres"
+  postgresql_user:
+    db: "{{amavis.dbName}}"
+    name: "{{amavis.dbUser}}"
+    password: "{{amavis_dbPasswordCommand.stdout}}"
+    encrypted: True
+    priv: ALL
+
+- copy:
+    src: amavis/amavis_postgres_2.10.1.sql
+    dest: /tmp/
+
+- name: Set up initial amavis SQL
+  become: True
+  become_user: "postgres"
+  shell: psql -U {{amavis.dbUser}} -d {{amavis.dbName}} -a -f /tmp/amavis_postgres_2.10.1.sql
+
+
+- name: Crete configuration files
+  template:
+      src: "{{item}}"
+      dest: /etc/amavis/conf.d/{{item|base}}
+  with_fileglob:
+    - "amavis/conf.d/*"
+
+- name: Install spamassasin
+  when: spamassasin
+  apt:
+    state: present
+    name: spamassasin
+
+- name: Install clamav
+  when: clamav
+  apt:
+    state: present
+    name: clamav-daemon

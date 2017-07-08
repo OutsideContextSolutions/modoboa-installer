@@ -7,43 +7,10 @@
 - include: clamav.yaml
   when: clamav
 
-- name: Create the {{user}} user.
-  become: True
-  user:
-    name: "{{user}}"
-    generate_ssh_key: True
-    shell: /bin/bash
-    system: True
-
-- name: Cat public key for {{user}}
-  become: True
-  become_user: "{{user}}"
-  command: "/bin/cat ~/.ssh/id_rsa.pub"
-  register: pubkeys
-
-- name: Print pubkeys for {{user}}
-  debug: 
-    msg: "{{ pubkeys.stdout | quote }}"
-
-- name: Generate a random password for the modoboa database user
-  shell: < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo -n;
-  register: dbPasswordCommand
-
-- name: create {{dbName}} postgres database
-  become: True
-  become_user: "postgres"
-  postgresql_db:
-    name: "{{dbName}}"
-
-- name: give access to {{dbUser}} on {{dbName}}
-  become: True
-  become_user: "postgres"
-  postgresql_user:
-    db: "{{dbName}}"
-    name: "{{dbUser}}"
-    password: "{{dbPasswordCommand.stdout}}"
-    encrypted: True
-    priv: ALL
+- include_role:
+    name: uwsgiWebService
+  vars: 
+    python: True
 
 - name: Initialize empty configuration
   copy:
