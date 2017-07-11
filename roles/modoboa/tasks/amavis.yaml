@@ -1,7 +1,11 @@
+- user:
+    name: amavis
+    system: True
+
 - name: Install amavis
   apt:
     state: present
-    name: amavis-new
+    name: amavisd-new
 
 - name: Generate a random password for our database user
   shell: < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo -n;
@@ -29,7 +33,7 @@
 
 - name: Set up initial amavis SQL
   become: True
-  become_user: "postgres"
+  become_user: "amavis"
   shell: psql -U {{amavis.dbUser}} -d {{amavis.dbName}} -a -f /tmp/amavis_postgres_2.10.1.sql
 
 
@@ -41,10 +45,10 @@
     - "amavis/conf.d/*"
 
 - name: Install spamassasin
-  when: spamassasin
+  when: spamassassin
   apt:
     state: present
-    name: spamassasin
+    name: spamassassin
 
 - name: Install clamav
   when: clamav

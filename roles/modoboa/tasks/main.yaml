@@ -8,7 +8,7 @@
   when: clamav
 
 - include_role:
-    name: uwsgiWebService
+    name: uwsgiWebservice
   vars: 
     python: True
 
@@ -38,7 +38,6 @@
   pip:
     state: latest
     editable: "{{develop|default('False')}}"
-    extra_args: --no-cache-dir
     requirements: /home/{{user}}/{{domain}}/requirements.txt
     virtualenv: ~/{{domain}}-venv/
     virtualenv_command: "{{virtualenv_command}}"

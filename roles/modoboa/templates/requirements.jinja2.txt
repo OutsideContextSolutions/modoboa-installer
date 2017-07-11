@@ -1,3 +1,5 @@
+pip
+setuptools
 modoboa
 {% for app in modoboa_apps %}
 {% if app is string %}
