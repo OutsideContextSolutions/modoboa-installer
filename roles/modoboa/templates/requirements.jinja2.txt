@@ -1,6 +1,7 @@
 pip
 setuptools
 modoboa
+psycopg2
 {% for app in modoboa_apps %}
 {% if app is string %}
 {{app}}

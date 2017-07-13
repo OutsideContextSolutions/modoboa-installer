@@ -8,11 +8,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 from .secret_key_generator import SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-ALLOWED_HOSTS += ['{{ domain }}', ]
 
 DEBUG="{{debug | default('False')}}"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['{{ domain }}', ]
 
 SITE_ID = 1
 
@@ -22,7 +21,7 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # Application definition
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -34,7 +33,7 @@ INSTALLED_APPS = (
     'ckeditor_uploader',
     'rest_framework',
     'rest_framework.authtoken',
-)
+]
 
 # A dedicated place to register Modoboa applications
 # Do not delete it.
@@ -125,13 +124,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/sitestatic/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'sitestatic')
+STATIC_ROOT = '/home/{{user}}/{{domain}}-static/'
 STATICFILES_DIRS = (
-    '/srv/modoboa/env/lib/python2.7/site-packages/modoboa/bower_components',
+    '/home/{{user}}/{{domain}}-venv/lib/python2.7/site-packages/modoboa/bower_components',
 )
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = '/home/{{user}}/{{domain}}-media/'
 
 # Rest framework settings
 
@@ -234,27 +233,25 @@ LOGGING = {
 
 from modoboa_amavis.settings import *
 
-INSTALLED_APPS += MODOBOA_APPS
-
-DATABASES = (
-    'default': dict(
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': '{{dbName}}',
-        'USER': '{{dbUser}}',
-        'PASSWORD': '{{ dbPasswordCommand.stdout }}',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-        'ATOMIC_REQUESTS': True,
+DATABASES = dict(
+    default= dict(
+        ENGINE= 'django.db.backends.postgresql_psycopg2',
+        NAME= '{{dbName}}',
+        USER= '{{dbUser}}',
+        PASSWORD= '{{ dbPasswordCommand.stdout }}',
+        HOST= '127.0.0.1',
+        PORT= '5432',
+        ATOMIC_REQUESTS= True,
     ),
     {% if amavis %}
-    'amavis': dict(
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': '{{amavis.dbName}}',
-        'USER': '{{amavis.dbUser}}',
-        'PASSWORD': '{{ amavis_dbPasswordCommand.stdout }}',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-        'ATOMIC_REQUESTS': True,
+    amavis= dict(
+        ENGINE= 'django.db.backends.postgresql_psycopg2',
+        NAME= '{{amavis.dbName}}',
+        USER= '{{amavis.dbUser}}',
+        PASSWORD= '{{ amavis_dbPasswordCommand.stdout }}',
+        HOST= '127.0.0.1',
+        PORT= '5432',
+        ATOMIC_REQUESTS= True,
     ),
     {% endif %}
 )
